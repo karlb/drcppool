@@ -1,6 +1,5 @@
 import cx_Oracle
 import sqlalchemy as sa
-from pylons import config
 
 class DRCPPool(sa.pool.Pool):
     """
@@ -26,15 +25,19 @@ class DRCPPool(sa.pool.Pool):
         self.__pool = cx_Oracle.SessionPool(
             db_user, db_pass, db_conn, min, max, increment,
             threaded=threaded, connectiontype=connectiontype)
+        self.recreate_args = (self, db_user, db_pass, db_conn,
+                min, max, increment, connectiontype, threaded, cclass)
+        self.recreate_kwargs = kwargs
 
     def __creator(self):
-        if self._cclass == None:
+        if self._cclass is None:
             return self.__pool.acquire()
         else:
             return self.__pool.acquire(cclass=self._cclass)
 
     def do_return_conn(self, conn):
-        self.__pool.release(conn.connection)
+        if conn.connection is not None:
+            self.__pool.release(conn.connection)
 
     def status(self):
         return 'DRCPPool for database %s; open connections: %d/%d'\
@@ -48,3 +51,6 @@ class DRCPPool(sa.pool.Pool):
 
     def dispose(self):
         pass
+
+    def recreate(self):
+        return DRCPPool(*self.recreate_args, **self.recreate_kwargs)
