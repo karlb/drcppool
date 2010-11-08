@@ -25,7 +25,7 @@ class DRCPPool(sa.pool.Pool):
         self.__pool = cx_Oracle.SessionPool(
             db_user, db_pass, db_conn, min, max, increment,
             threaded=threaded, connectiontype=connectiontype)
-        self.recreate_args = (self, db_user, db_pass, db_conn,
+        self.recreate_args = (db_user, db_pass, db_conn,
                 min, max, increment, connectiontype, threaded, cclass)
         self.recreate_kwargs = kwargs
 
